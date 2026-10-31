@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.ref_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,9 +38,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git checkout main
+          branch="${GITHUB_REF_NAME:-main}"
+          git fetch origin "$branch" --prune
+          git checkout -B "$branch" "origin/$branch"
 
-          git add lg_channels_us.m3u lg_channels_us.xml lg_channels_gb.m3u lg_channels_gb.xml
+          git add -- lg_channels_us.m3u lg_channels_us.xml lg_channels_gb.m3u lg_channels_gb.xml
 
           if git diff --cached --quiet; then
             echo "No playlist changes to commit."
@@ -47,4 +50,4 @@ jobs:
           fi
 
           git commit -m "Update LG GB and US Playlists and EPG"
-          git push origin HEAD:main
+          git push origin HEAD:"$branch"
